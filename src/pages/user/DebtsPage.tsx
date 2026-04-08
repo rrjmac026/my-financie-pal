@@ -22,7 +22,7 @@ export default function DebtsPage() {
   const [paymentDialogOpen, setPaymentDialogOpen] = useState(false);
   const [selectedDebt, setSelectedDebt] = useState<Debt | null>(null);
   const [paymentAmount, setPaymentAmount] = useState('');
-  const [form, setForm] = useState({ personName: '', amount: '', type: 'lent' as const, dueDate: '', notes: '' });
+  const [form, setForm] = useState<{ personName: string; amount: string; type: 'lent' | 'borrowed'; dueDate: string; notes: string }>({ personName: '', amount: '', type: 'lent', dueDate: '', notes: '' });
 
   const lent = debts.filter(d => d.type === 'lent');
   const borrowed = debts.filter(d => d.type === 'borrowed');
