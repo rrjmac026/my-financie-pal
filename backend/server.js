@@ -15,10 +15,11 @@ const allowedOrigins = [
 ];
 
 app.use(cors({
-  origin: allowedOrigins,
+  origin: [
+    'https://my-financie-pal-1.onrender.com'
+  ],
   credentials: true
 }));
-app.use(express.json());
 
 // Define Routes
 app.use('/api/auth', require('./routes/auth'));
