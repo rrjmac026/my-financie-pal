@@ -10,8 +10,12 @@ const app = express();
 connectDB();
 
 // Init Middleware
+const allowedOrigins = [
+  'https://my-financie-pal-1.onrender.com'
+];
+
 app.use(cors({
-  origin: ['http://localhost:8080', 'http://localhost:5173', 'http://localhost:3000', 'http://localhost:8081'],
+  origin: allowedOrigins,
   credentials: true
 }));
 app.use(express.json());
