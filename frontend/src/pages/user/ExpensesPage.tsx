@@ -9,12 +9,13 @@ import { Badge } from '@/components/ui/badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Plus, Search, Pencil, Trash2 } from 'lucide-react';
-import { expensesApi, type Expense } from '@/lib/api';
-import { CATEGORIES, PAYMENT_METHODS, formatCurrency } from '@/lib/mockData';
+import { categoriesApi, expensesApi, type Category, type Expense } from '@/lib/api';
+import { PAYMENT_METHODS, formatCurrency } from '@/lib/mockData';
 import { toast } from '@/hooks/use-toast';
 
 export default function ExpensesPage() {
   const [expenses, setExpenses] = useState<Expense[]>([]);
+  const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [filterCategory, setFilterCategory] = useState('all');
@@ -22,13 +23,17 @@ export default function ExpensesPage() {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingExpense, setEditingExpense] = useState<Expense | null>(null);
   const [saving, setSaving] = useState(false);
-  const [form, setForm] = useState({ amount: '', category: CATEGORIES[0].name, date: new Date().toISOString().split('T')[0], description: '', paymentMethod: 'Cash' });
+  const [form, setForm] = useState({ amount: '', category: '', date: new Date().toISOString().split('T')[0], description: '', paymentMethod: 'Cash' });
 
   useEffect(() => {
     expensesApi.getAll()
       .then(setExpenses)
       .catch(() => toast({ title: 'Error', description: 'Failed to load expenses', variant: 'destructive' }))
       .finally(() => setLoading(false));
+
+    categoriesApi.getAll()
+      .then(setCategories)
+      .catch(() => toast({ title: 'Error', description: 'Failed to load categories', variant: 'destructive' }));
   }, []);
 
   const filtered = expenses.filter(e => {
@@ -42,7 +47,7 @@ export default function ExpensesPage() {
 
   const openAdd = () => {
     setEditingExpense(null);
-    setForm({ amount: '', category: CATEGORIES[0].name, date: new Date().toISOString().split('T')[0], description: '', paymentMethod: 'Cash' });
+    setForm({ amount: '', category: categories[0]?.name || '', date: new Date().toISOString().split('T')[0], description: '', paymentMethod: 'Cash' });
     setDialogOpen(true);
   };
 
@@ -116,7 +121,7 @@ export default function ExpensesPage() {
                   <Label>Category</Label>
                   <Select value={form.category} onValueChange={v => setForm({ ...form, category: v })}>
                     <SelectTrigger><SelectValue /></SelectTrigger>
-                    <SelectContent>{CATEGORIES.map(c => <SelectItem key={c.id} value={c.name}>{c.icon} {c.name}</SelectItem>)}</SelectContent>
+                    <SelectContent>{categories.map(c => <SelectItem key={c.id} value={c.name}>{c.icon} {c.name}</SelectItem>)}</SelectContent>
                   </Select>
                 </div>
                 <div className="space-y-2">
@@ -147,7 +152,7 @@ export default function ExpensesPage() {
               <SelectTrigger className="w-full sm:w-[180px]"><SelectValue placeholder="Category" /></SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">All Categories</SelectItem>
-                {CATEGORIES.map(c => <SelectItem key={c.id} value={c.name}>{c.name}</SelectItem>)}
+                {categories.map(c => <SelectItem key={c.id} value={c.name}>{c.name}</SelectItem>)}
               </SelectContent>
             </Select>
             <Select value={filterPayment} onValueChange={setFilterPayment}>

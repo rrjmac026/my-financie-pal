@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -7,7 +7,8 @@ import { Progress } from '@/components/ui/progress';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Settings2, AlertTriangle } from 'lucide-react';
-import { CATEGORIES, formatCurrency } from '@/lib/mockData';
+import { categoriesApi } from '@/lib/api';
+import { formatCurrency, type Category } from '@/lib/mockData';
 
 interface Budget {
   id: string;
@@ -16,24 +17,24 @@ interface Budget {
   spent: number;
 }
 
-const initialBudgets: Budget[] = [
-  { id: '1', category: 'Food & Dining', limit: 5000, spent: 1530 },
-  { id: '2', category: 'Transportation', limit: 3000, spent: 150 },
-  { id: '3', category: 'Shopping', limit: 4000, spent: 2500 },
-  { id: '4', category: 'Bills & Utilities', limit: 8000, spent: 5300 },
-  { id: '5', category: 'Entertainment', limit: 2000, spent: 350 },
-  { id: '6', category: 'Health', limit: 2000, spent: 500 },
-];
+const initialBudgets: Budget[] = [];
 
 export default function BudgetsPage() {
-  const [monthlyBudget, setMonthlyBudget] = useState(30000);
   const [budgets, setBudgets] = useState<Budget[]>(initialBudgets);
+  const [categories, setCategories] = useState<Category[]>([]);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editId, setEditId] = useState<string | null>(null);
   const [form, setForm] = useState({ category: '', limit: '' });
 
   const totalSpent = budgets.reduce((s, b) => s + b.spent, 0);
-  const overallPercent = Math.min((totalSpent / monthlyBudget) * 100, 100);
+  const monthlyBudget = budgets.reduce((s, b) => s + b.limit, 0);
+  const overallPercent = monthlyBudget === 0 ? 0 : Math.min((totalSpent / monthlyBudget) * 100, 100);
+
+  useEffect(() => {
+    categoriesApi.getAll()
+      .then(setCategories)
+      .catch(console.error);
+  }, []);
 
   const openEdit = (b: Budget) => {
     setEditId(b.id);
@@ -43,7 +44,7 @@ export default function BudgetsPage() {
 
   const openAdd = () => {
     setEditId(null);
-    setForm({ category: CATEGORIES[0].name, limit: '' });
+    setForm({ category: categories[0]?.name || '', limit: '' });
     setDialogOpen(true);
   };
 
@@ -74,7 +75,7 @@ export default function BudgetsPage() {
                 <Label>Category</Label>
                 <Select value={form.category} onValueChange={v => setForm({ ...form, category: v })} disabled={!!editId}>
                   <SelectTrigger><SelectValue /></SelectTrigger>
-                  <SelectContent>{CATEGORIES.map(c => <SelectItem key={c.id} value={c.name}>{c.icon} {c.name}</SelectItem>)}</SelectContent>
+                  <SelectContent>{categories.map(c => <SelectItem key={c.id} value={c.name}>{c.icon} {c.name}</SelectItem>)}</SelectContent>
                 </Select>
               </div>
               <div className="space-y-2">
@@ -115,7 +116,7 @@ export default function BudgetsPage() {
           const percent = Math.min((budget.spent / budget.limit) * 100, 100);
           const isWarning = percent >= 80;
           const isOver = percent >= 100;
-          const cat = CATEGORIES.find(c => c.name === budget.category);
+          const cat = categories.find(c => c.name === budget.category);
           return (
             <Card key={budget.id} className={`hover:shadow-md transition-shadow ${isOver ? 'border-destructive/50' : isWarning ? 'border-warning/50' : ''}`}>
               <CardContent className="p-5">

@@ -1,8 +1,14 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { mockExpenses, mockDebts, categorySpending, weeklySpending, formatCurrency } from '@/lib/mockData';
+import { formatCurrency } from '@/lib/mockData';
 import { DollarSign, TrendingDown, TrendingUp, HandCoins } from 'lucide-react';
 import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
+
+// Placeholder data
+const mockExpenses: any[] = [];
+const mockDebts: any[] = [];
+const weeklySpending = [];
+const categorySpending = [];
 
 const totalSpent = mockExpenses.reduce((s, e) => s + e.amount, 0);
 const monthlyBudget = 30000;

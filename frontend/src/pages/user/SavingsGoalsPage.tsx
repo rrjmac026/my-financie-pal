@@ -7,10 +7,10 @@ import { Progress } from '@/components/ui/progress';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from '@/components/ui/dialog';
 import { Badge } from '@/components/ui/badge';
 import { Plus, Target } from 'lucide-react';
-import { mockSavingsGoals, formatCurrency, type SavingsGoal } from '@/lib/mockData';
+import { formatCurrency, type SavingsGoal } from '@/lib/mockData';
 
 export default function SavingsGoalsPage() {
-  const [goals, setGoals] = useState<SavingsGoal[]>(mockSavingsGoals);
+  const [goals, setGoals] = useState<SavingsGoal[]>([]);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [form, setForm] = useState({ name: '', target: '', saved: '', deadline: '', icon: '🎯' });
 

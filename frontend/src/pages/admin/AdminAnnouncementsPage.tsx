@@ -7,10 +7,9 @@ import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from '@/components/ui/dialog';
 import { Plus, Pencil, Trash2, Megaphone } from 'lucide-react';
-import { mockAnnouncements } from '@/lib/mockData';
 
 export default function AdminAnnouncementsPage() {
-  const [announcements, setAnnouncements] = useState(mockAnnouncements);
+  const [announcements, setAnnouncements] = useState<any[]>([]);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [form, setForm] = useState({ title: '', message: '', active: true });
 

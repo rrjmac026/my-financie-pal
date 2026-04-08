@@ -1,11 +1,14 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { categorySpending, weeklySpending, monthlySpending, formatCurrency } from '@/lib/mockData';
+import { formatCurrency } from '@/lib/mockData';
 import {
   PieChart, Pie, Cell, ResponsiveContainer, LineChart, Line,
   BarChart, Bar, XAxis, YAxis, Tooltip, CartesianGrid, Legend,
 } from 'recharts';
 
 export default function ReportsPage() {
+  const categorySpending: any[] = [];
+  const weeklySpending: any[] = [];
+  const monthlySpending: any[] = [];
   const totalSpent = categorySpending.reduce((s, c) => s + c.value, 0);
 
   return (

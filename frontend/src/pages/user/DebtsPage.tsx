@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -8,7 +8,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Plus, Calendar, DollarSign, User } from 'lucide-react';
-import { mockDebts, formatCurrency, type Debt } from '@/lib/mockData';
+import { formatCurrency, type Debt } from '@/lib/mockData';
 
 const statusColors: Record<string, string> = {
   pending: 'bg-warning/10 text-warning border-warning/30',
@@ -17,12 +17,27 @@ const statusColors: Record<string, string> = {
 };
 
 export default function DebtsPage() {
-  const [debts, setDebts] = useState<Debt[]>(mockDebts);
+  const [debts, setDebts] = useState<Debt[]>([]);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [paymentDialogOpen, setPaymentDialogOpen] = useState(false);
   const [selectedDebt, setSelectedDebt] = useState<Debt | null>(null);
   const [paymentAmount, setPaymentAmount] = useState('');
   const [form, setForm] = useState<{ personName: string; amount: string; type: 'lent' | 'borrowed'; dueDate: string; notes: string }>({ personName: '', amount: '', type: 'lent', dueDate: '', notes: '' });
+
+  useEffect(() => {
+    const storedDebts = localStorage.getItem('debts');
+    if (storedDebts) {
+      try {
+        setDebts(JSON.parse(storedDebts));
+      } catch {
+        // ignore invalid stored data
+      }
+    }
+  }, []);
+
+  useEffect(() => {
+    localStorage.setItem('debts', JSON.stringify(debts));
+  }, [debts]);
 
   const lent = debts.filter(d => d.type === 'lent');
   const borrowed = debts.filter(d => d.type === 'borrowed');
@@ -36,7 +51,18 @@ export default function DebtsPage() {
   };
 
   const handleSave = () => {
-    setDebts(prev => [...prev, { id: Date.now().toString(), ...form, amount: parseFloat(form.amount), status: 'pending', paidAmount: 0 }]);
+    const amount = parseFloat(form.amount);
+    if (!form.personName.trim() || Number.isNaN(amount) || amount <= 0) {
+      return;
+    }
+
+    setDebts(prev => [...prev, {
+      id: Date.now().toString(),
+      ...form,
+      amount,
+      status: 'pending',
+      paidAmount: 0,
+    }] );
     setDialogOpen(false);
   };
 

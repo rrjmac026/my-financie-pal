@@ -6,13 +6,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Input } from '@/components/ui/input';
 import { Search, Ban, CheckCircle, Trash2 } from 'lucide-react';
 
-const initialUsers = [
-  { id: '1', name: 'John Doe', email: 'john@example.com', role: 'user', status: 'active', joined: '2026-01-15', expenses: 45 },
-  { id: '2', name: 'Maria Santos', email: 'maria@example.com', role: 'user', status: 'active', joined: '2026-02-03', expenses: 32 },
-  { id: '3', name: 'Pedro Reyes', email: 'pedro@example.com', role: 'user', status: 'suspended', joined: '2026-01-20', expenses: 18 },
-  { id: '4', name: 'Ana Garcia', email: 'ana@example.com', role: 'user', status: 'active', joined: '2026-03-10', expenses: 67 },
-  { id: '5', name: 'Carlo Mendoza', email: 'carlo@example.com', role: 'admin', status: 'active', joined: '2025-12-01', expenses: 23 },
-];
+const initialUsers: any[] = [];
 
 export default function AdminUsersPage() {
   const [users, setUsers] = useState(initialUsers);

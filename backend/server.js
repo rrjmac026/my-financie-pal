@@ -24,6 +24,7 @@ app.use('/api/budgets', require('./routes/budgets'));
 app.use('/api/debts', require('./routes/debts'));
 app.use('/api/wallets', require('./routes/wallets'));
 app.use('/api/savings', require('./routes/savings'));
+app.use('/api/categories', require('./routes/categories'));
 
 app.get('/', (req, res) => res.send('BudgetTracker API Running'));
 

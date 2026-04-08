@@ -1,31 +1,44 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from '@/components/ui/dialog';
 import { Plus, Pencil, Trash2 } from 'lucide-react';
-import { CATEGORIES } from '@/lib/mockData';
+import { categoriesApi, type Category } from '@/lib/api';
 
 export default function AdminCategoriesPage() {
-  const [categories, setCategories] = useState(CATEGORIES);
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [loading, setLoading] = useState(true);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editId, setEditId] = useState<string | null>(null);
   const [form, setForm] = useState({ name: '', icon: '', color: '#2d8a9e' });
 
-  const openAdd = () => { setEditId(null); setForm({ name: '', icon: '', color: '#2d8a9e' }); setDialogOpen(true); };
-  const openEdit = (c: typeof categories[0]) => { setEditId(c.id); setForm({ name: c.name, icon: c.icon, color: c.color }); setDialogOpen(true); };
+  useEffect(() => {
+    categoriesApi.getAll()
+      .then(setCategories)
+      .catch(console.error)
+      .finally(() => setLoading(false));
+  }, []);
 
-  const handleSave = () => {
+  const openAdd = () => { setEditId(null); setForm({ name: '', icon: '', color: '#2d8a9e' }); setDialogOpen(true); };
+  const openEdit = (c: Category) => { setEditId(c.id); setForm({ name: c.name, icon: c.icon, color: c.color }); setDialogOpen(true); };
+
+  const handleSave = async () => {
     if (editId) {
-      setCategories(prev => prev.map(c => c.id === editId ? { ...c, ...form } : c));
+      const updated = await categoriesApi.update(editId, form);
+      setCategories(prev => prev.map(c => c.id === editId ? updated : c));
     } else {
-      setCategories(prev => [...prev, { id: Date.now().toString(), ...form }]);
+      const created = await categoriesApi.create(form);
+      setCategories(prev => [...prev, created]);
     }
     setDialogOpen(false);
   };
 
-  const handleDelete = (id: string) => setCategories(prev => prev.filter(c => c.id !== id));
+  const handleDelete = async (id: string) => {
+    await categoriesApi.delete(id);
+    setCategories(prev => prev.filter(c => c.id !== id));
+  };
 
   return (
     <div className="space-y-6 animate-fade-in">

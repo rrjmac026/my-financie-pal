@@ -3,7 +3,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Bell, Check, Trash2, AlertTriangle, Info, CheckCircle, XCircle } from 'lucide-react';
-import { mockNotifications, type Notification } from '@/lib/mockData';
+import { type Notification } from '@/lib/mockData';
 
 const typeIcons: Record<string, React.ReactNode> = {
   warning: <AlertTriangle className="h-4 w-4 text-warning" />,
@@ -20,7 +20,7 @@ const typeBg: Record<string, string> = {
 };
 
 export default function NotificationsPage() {
-  const [notifications, setNotifications] = useState<Notification[]>(mockNotifications);
+  const [notifications, setNotifications] = useState<Notification[]>([]);
 
   const unreadCount = notifications.filter(n => !n.read).length;
 

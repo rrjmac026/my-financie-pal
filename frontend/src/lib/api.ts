@@ -2,7 +2,7 @@ const API_BASE = 'http://localhost:5000/api';
 
 const getAuthHeaders = () => {
   const token = localStorage.getItem('budget_token');
-  return token ? { Authorization: `Bearer ${token}` } : {};
+  return token ? { 'x-auth-token': token } : {};
 };
 
 const apiRequest = async (endpoint: string, options: RequestInit = {}) => {
@@ -46,6 +46,13 @@ export interface Wallet {
   icon: string;
   color: string;
   createdAt?: string;
+}
+
+export interface Category {
+  id: string;
+  name: string;
+  icon: string;
+  color: string;
 }
 
 // Auth API
@@ -118,6 +125,32 @@ export const walletsApi = {
 
   delete: async (id: string): Promise<void> => {
     return apiRequest(`/wallets/${id}`, {
+      method: 'DELETE',
+    });
+  },
+};
+
+export const categoriesApi = {
+  getAll: async (): Promise<Category[]> => {
+    return apiRequest('/categories');
+  },
+
+  create: async (category: Omit<Category, 'id'>): Promise<Category> => {
+    return apiRequest('/categories', {
+      method: 'POST',
+      body: JSON.stringify(category),
+    });
+  },
+
+  update: async (id: string, category: Omit<Category, 'id'>): Promise<Category> => {
+    return apiRequest(`/categories/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify(category),
+    });
+  },
+
+  delete: async (id: string): Promise<void> => {
+    return apiRequest(`/categories/${id}`, {
       method: 'DELETE',
     });
   },

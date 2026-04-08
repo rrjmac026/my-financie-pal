@@ -3,17 +3,8 @@ import { Users, Receipt, Tags, TrendingUp } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from 'recharts';
 import { formatCurrency } from '@/lib/mockData';
 
-const stats = [
-  { title: 'Total Users', value: '1,248', icon: Users, change: '+12%' },
-  { title: 'Total Expenses', value: '34,521', icon: Receipt, change: '+8%' },
-  { title: 'Most Used Category', value: 'Food & Dining', icon: Tags, change: '32%' },
-  { title: 'Avg Spending/User', value: formatCurrency(15400), icon: TrendingUp, change: '+5%' },
-];
-
-const userGrowth = [
-  { month: 'Nov', users: 820 }, { month: 'Dec', users: 910 }, { month: 'Jan', users: 980 },
-  { month: 'Feb', users: 1050 }, { month: 'Mar', users: 1150 }, { month: 'Apr', users: 1248 },
-];
+const stats: any[] = [];
+const userGrowth: any[] = [];
 
 export default function AdminDashboard() {
   return (
