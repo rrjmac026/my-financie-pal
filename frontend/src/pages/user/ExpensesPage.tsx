@@ -9,13 +9,14 @@ import { Badge } from '@/components/ui/badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Plus, Search, Pencil, Trash2 } from 'lucide-react';
-import { categoriesApi, expensesApi, type Category, type Expense } from '@/lib/api';
+import { categoriesApi, expensesApi, walletsApi, type Category, type Expense, type Wallet } from '@/lib/api';
 import { PAYMENT_METHODS, formatCurrency } from '@/lib/mockData';
 import { toast } from '@/hooks/use-toast';
 
 export default function ExpensesPage() {
   const [expenses, setExpenses] = useState<Expense[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
+  const [wallets, setWallets] = useState<Wallet[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [filterCategory, setFilterCategory] = useState('all');
@@ -23,17 +24,17 @@ export default function ExpensesPage() {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingExpense, setEditingExpense] = useState<Expense | null>(null);
   const [saving, setSaving] = useState(false);
-  const [form, setForm] = useState({ amount: '', category: '', date: new Date().toISOString().split('T')[0], description: '', paymentMethod: 'Cash' });
+  const [form, setForm] = useState({ amount: '', category: '', wallet: '', date: new Date().toISOString().split('T')[0], description: '', paymentMethod: 'Cash' });
 
   useEffect(() => {
-    expensesApi.getAll()
-      .then(setExpenses)
-      .catch(() => toast({ title: 'Error', description: 'Failed to load expenses', variant: 'destructive' }))
+    Promise.all([expensesApi.getAll(), categoriesApi.getAll(), walletsApi.getAll()])
+      .then(([expenseResults, categoryResults, walletResults]) => {
+        setExpenses(expenseResults);
+        setCategories(categoryResults);
+        setWallets(walletResults);
+      })
+      .catch(() => toast({ title: 'Error', description: 'Failed to load data', variant: 'destructive' }))
       .finally(() => setLoading(false));
-
-    categoriesApi.getAll()
-      .then(setCategories)
-      .catch(() => toast({ title: 'Error', description: 'Failed to load categories', variant: 'destructive' }));
   }, []);
 
   const filtered = expenses.filter(e => {
@@ -45,19 +46,52 @@ export default function ExpensesPage() {
 
   const getId = (e: Expense) => e._id || e.id || '';
 
+  const getWalletId = (wallet?: Expense['wallet']) => {
+    if (!wallet) return '';
+    return typeof wallet === 'string' ? wallet : wallet._id || wallet.id || '';
+  };
+
+  const getWalletName = (wallet?: Expense['wallet']) => {
+    if (!wallet) return 'Unknown';
+    if (typeof wallet === 'string') {
+      const found = wallets.find(w => w._id === wallet || w.id === wallet);
+      return found?.name || 'Wallet';
+    }
+    return wallet.name || wallet._id || wallet.id || 'Wallet';
+  };
+
   const openAdd = () => {
     setEditingExpense(null);
-    setForm({ amount: '', category: categories[0]?.name || '', date: new Date().toISOString().split('T')[0], description: '', paymentMethod: 'Cash' });
+    setForm({
+      amount: '',
+      category: categories[0]?.name || '',
+      wallet: wallets[0]?._id || wallets[0]?.id || '',
+      date: new Date().toISOString().split('T')[0],
+      description: '',
+      paymentMethod: 'Cash',
+    });
     setDialogOpen(true);
   };
 
   const openEdit = (exp: Expense) => {
     setEditingExpense(exp);
-    setForm({ amount: exp.amount.toString(), category: exp.category, date: exp.date, description: exp.description, paymentMethod: exp.paymentMethod });
+    setForm({
+      amount: exp.amount.toString(),
+      category: exp.category,
+      wallet: getWalletId(exp.wallet),
+      date: exp.date,
+      description: exp.description,
+      paymentMethod: exp.paymentMethod,
+    });
     setDialogOpen(true);
   };
 
   const handleSave = async () => {
+    if (!form.wallet) {
+      toast({ title: 'Missing wallet', description: 'Select a wallet before saving.', variant: 'destructive' });
+      return;
+    }
+
     setSaving(true);
     try {
       const payload = { ...form, amount: parseFloat(form.amount) };
@@ -125,12 +159,21 @@ export default function ExpensesPage() {
                   </Select>
                 </div>
                 <div className="space-y-2">
-                  <Label>Payment Method</Label>
-                  <Select value={form.paymentMethod} onValueChange={v => setForm({ ...form, paymentMethod: v })}>
+                  <Label>Wallet</Label>
+                  <Select value={form.wallet} onValueChange={v => setForm({ ...form, wallet: v })}>
                     <SelectTrigger><SelectValue /></SelectTrigger>
-                    <SelectContent>{PAYMENT_METHODS.map(p => <SelectItem key={p} value={p}>{p}</SelectItem>)}</SelectContent>
+                    <SelectContent>
+                      {wallets.map(wallet => <SelectItem key={wallet._id || wallet.id} value={wallet._id || wallet.id}>{wallet.name}</SelectItem>)}
+                    </SelectContent>
                   </Select>
                 </div>
+              </div>
+              <div className="space-y-2">
+                <Label>Payment Method</Label>
+                <Select value={form.paymentMethod} onValueChange={v => setForm({ ...form, paymentMethod: v })}>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>{PAYMENT_METHODS.map(p => <SelectItem key={p} value={p}>{p}</SelectItem>)}</SelectContent>
+                </Select>
               </div>
             </div>
             <DialogFooter>
@@ -178,6 +221,7 @@ export default function ExpensesPage() {
                     <TableHead>Description</TableHead>
                     <TableHead>Category</TableHead>
                     <TableHead>Payment</TableHead>
+                    <TableHead>Wallet</TableHead>
                     <TableHead className="text-right">Amount</TableHead>
                     <TableHead className="w-[80px]">Actions</TableHead>
                   </TableRow>
@@ -189,6 +233,7 @@ export default function ExpensesPage() {
                       <TableCell className="font-medium">{exp.description}</TableCell>
                       <TableCell><Badge variant="secondary" className="text-xs">{exp.category}</Badge></TableCell>
                       <TableCell className="text-sm">{exp.paymentMethod}</TableCell>
+                      <TableCell>{getWalletName(exp.wallet)}</TableCell>
                       <TableCell className="text-right font-semibold">{formatCurrency(exp.amount)}</TableCell>
                       <TableCell>
                         <div className="flex gap-1">

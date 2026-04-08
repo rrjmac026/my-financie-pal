@@ -7,6 +7,7 @@ const ExpenseSchema = new mongoose.Schema({
   date: { type: String, required: true },
   description: { type: String, required: true },
   paymentMethod: { type: String, required: true },
+  wallet: { type: mongoose.Schema.Types.ObjectId, ref: 'Wallet' },
   createdAt: { type: Date, default: Date.now }
 });
 

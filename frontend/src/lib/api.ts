@@ -34,6 +34,7 @@ export interface Expense {
   date: string;
   description: string;
   paymentMethod: string;
+  wallet?: string | { _id?: string; id?: string; name?: string };
   createdAt?: string;
 }
 
