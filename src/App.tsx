@@ -1,26 +1,90 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Route, Routes } from "react-router-dom";
+import { BrowserRouter, Route, Routes, Navigate } from "react-router-dom";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
-import Index from "./pages/Index.tsx";
-import NotFound from "./pages/NotFound.tsx";
+import { AuthProvider, useAuth } from "@/contexts/AuthContext";
+import { ThemeProvider } from "@/contexts/ThemeContext";
+import { DashboardLayout } from "@/components/DashboardLayout";
+
+import LoginPage from "./pages/auth/LoginPage";
+import RegisterPage from "./pages/auth/RegisterPage";
+import ForgotPasswordPage from "./pages/auth/ForgotPasswordPage";
+import UserDashboard from "./pages/user/UserDashboard";
+import ExpensesPage from "./pages/user/ExpensesPage";
+import BudgetsPage from "./pages/user/BudgetsPage";
+import DebtsPage from "./pages/user/DebtsPage";
+import WalletsPage from "./pages/user/WalletsPage";
+import SavingsGoalsPage from "./pages/user/SavingsGoalsPage";
+import ReportsPage from "./pages/user/ReportsPage";
+import NotificationsPage from "./pages/user/NotificationsPage";
+import AdminDashboard from "./pages/admin/AdminDashboard";
+import AdminUsersPage from "./pages/admin/AdminUsersPage";
+import AdminCategoriesPage from "./pages/admin/AdminCategoriesPage";
+import AdminAnnouncementsPage from "./pages/admin/AdminAnnouncementsPage";
+import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
 
+function ProtectedRoute({ children }: { children: React.ReactNode }) {
+  const { isAuthenticated } = useAuth();
+  if (!isAuthenticated) return <Navigate to="/login" replace />;
+  return <DashboardLayout>{children}</DashboardLayout>;
+}
+
+function AdminRoute({ children }: { children: React.ReactNode }) {
+  const { isAuthenticated, user } = useAuth();
+  if (!isAuthenticated) return <Navigate to="/login" replace />;
+  if (user?.role !== 'admin') return <Navigate to="/dashboard" replace />;
+  return <DashboardLayout>{children}</DashboardLayout>;
+}
+
+function AuthRoute({ children }: { children: React.ReactNode }) {
+  const { isAuthenticated } = useAuth();
+  if (isAuthenticated) return <Navigate to="/dashboard" replace />;
+  return <>{children}</>;
+}
+
+function AppRoutes() {
+  return (
+    <Routes>
+      <Route path="/" element={<Navigate to="/login" replace />} />
+      <Route path="/login" element={<AuthRoute><LoginPage /></AuthRoute>} />
+      <Route path="/register" element={<AuthRoute><RegisterPage /></AuthRoute>} />
+      <Route path="/forgot-password" element={<AuthRoute><ForgotPasswordPage /></AuthRoute>} />
+
+      <Route path="/dashboard" element={<ProtectedRoute><UserDashboard /></ProtectedRoute>} />
+      <Route path="/expenses" element={<ProtectedRoute><ExpensesPage /></ProtectedRoute>} />
+      <Route path="/budgets" element={<ProtectedRoute><BudgetsPage /></ProtectedRoute>} />
+      <Route path="/debts" element={<ProtectedRoute><DebtsPage /></ProtectedRoute>} />
+      <Route path="/wallets" element={<ProtectedRoute><WalletsPage /></ProtectedRoute>} />
+      <Route path="/savings" element={<ProtectedRoute><SavingsGoalsPage /></ProtectedRoute>} />
+      <Route path="/reports" element={<ProtectedRoute><ReportsPage /></ProtectedRoute>} />
+      <Route path="/notifications" element={<ProtectedRoute><NotificationsPage /></ProtectedRoute>} />
+
+      <Route path="/admin" element={<AdminRoute><AdminDashboard /></AdminRoute>} />
+      <Route path="/admin/users" element={<AdminRoute><AdminUsersPage /></AdminRoute>} />
+      <Route path="/admin/categories" element={<AdminRoute><AdminCategoriesPage /></AdminRoute>} />
+      <Route path="/admin/announcements" element={<AdminRoute><AdminAnnouncementsPage /></AdminRoute>} />
+
+      <Route path="*" element={<NotFound />} />
+    </Routes>
+  );
+}
+
 const App = () => (
   <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
-      <Toaster />
-      <Sonner />
-      <BrowserRouter>
-        <Routes>
-          <Route path="/" element={<Index />} />
-          {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-          <Route path="*" element={<NotFound />} />
-        </Routes>
-      </BrowserRouter>
-    </TooltipProvider>
+    <ThemeProvider>
+      <AuthProvider>
+        <TooltipProvider>
+          <Toaster />
+          <Sonner />
+          <BrowserRouter>
+            <AppRoutes />
+          </BrowserRouter>
+        </TooltipProvider>
+      </AuthProvider>
+    </ThemeProvider>
   </QueryClientProvider>
 );
 
