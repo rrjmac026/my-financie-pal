@@ -6,21 +6,32 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { ThemeToggle } from '@/components/ThemeToggle';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 
 export default function RegisterPage() {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
   const { register } = useAuth();
   const navigate = useNavigate();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setError('');
+    if (password.length < 6) {
+      setError('Password must be at least 6 characters');
+      return;
+    }
     setLoading(true);
-    const success = await register(name, email, password);
+    const result = await register(name, email, password);
     setLoading(false);
-    if (success) navigate('/dashboard');
+    if (result.success) {
+      navigate('/dashboard');
+    } else {
+      setError(result.error || 'Registration failed');
+    }
   };
 
   return (
@@ -34,6 +45,11 @@ export default function RegisterPage() {
         </CardHeader>
         <form onSubmit={handleSubmit}>
           <CardContent className="space-y-4">
+            {error && (
+              <Alert variant="destructive">
+                <AlertDescription>{error}</AlertDescription>
+              </Alert>
+            )}
             <div className="space-y-2">
               <Label htmlFor="name">Full Name</Label>
               <Input id="name" placeholder="John Doe" value={name} onChange={e => setName(e.target.value)} required />
@@ -52,7 +68,8 @@ export default function RegisterPage() {
               {loading ? 'Creating account...' : 'Create Account'}
             </Button>
             <p className="text-sm text-muted-foreground">
-              Already have an account? <Link to="/login" className="text-primary hover:underline">Sign in</Link>
+              Already have an account?{' '}
+              <Link to="/login" className="text-primary hover:underline">Sign in</Link>
             </p>
           </CardFooter>
         </form>
