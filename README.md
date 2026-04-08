@@ -1,3 +1,2 @@
-# Welcome to your Lovable project
+# Budget Tracker App
 
-TODO: Document your project here
